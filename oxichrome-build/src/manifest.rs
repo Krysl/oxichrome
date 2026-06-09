@@ -142,8 +142,56 @@ pub fn generate_manifest(metadata: &ExtensionMetadata, browser: Browser) -> anyh
         );
     }
 
+    // Merge extra_manifest JSON into the final manifest.
+    // New keys from extra_manifest are appended at the end of the JSON output.
+    if let Some(extra) = &metadata.extra_manifest {
+        let extra_value: serde_json::Value = serde_json::from_str(extra)
+            .map_err(|e| anyhow::anyhow!("extra_manifest is not valid JSON: {e}"))?;
+
+        if let Some(extra_obj) = extra_value.as_object() {
+            let entries: Vec<(String, serde_json::Value)> = extra_obj
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+
+            let obj = value.as_object_mut().unwrap();
+
+            // Pass 1: merge into existing keys (keeps their original position)
+            for (key, extra_val) in &entries {
+                if let Some(existing) = obj.get_mut(key) {
+                    merge_json(existing, extra_val.clone());
+                }
+            }
+
+            // Pass 2: insert new keys at the end
+            for (key, extra_val) in &entries {
+                if !obj.contains_key(key) {
+                    obj.insert(key.clone(), extra_val.clone());
+                }
+            }
+        }
+    }
+
     let json = serde_json::to_string_pretty(&value)?;
     Ok(json)
+}
+
+/// Recursively merge `extra` into `base`. For objects, fields from `extra`
+/// override or extend `base`. For arrays, `extra` values replace `base` values.
+fn merge_json(base: &mut serde_json::Value, extra: serde_json::Value) {
+    match (base, extra) {
+        (base_obj @ serde_json::Value::Object(_), serde_json::Value::Object(extra_map)) => {
+            let base_map = base_obj.as_object_mut().unwrap();
+            for (key, extra_val) in extra_map {
+                if let Some(existing) = base_map.get_mut(&key) {
+                    merge_json(existing, extra_val);
+                } else {
+                    base_map.insert(key, extra_val);
+                }
+            }
+        }
+        (base, extra) => *base = extra,
+    }
 }
 
 #[cfg(test)]
@@ -156,6 +204,7 @@ mod tests {
             version: Some("1.0.0".to_string()),
             description: Some("A test extension".to_string()),
             permissions: vec!["storage".to_string(), "tabs".to_string()],
+            extra_manifest: None,
             background_functions: vec!["start".to_string()],
             event_handlers: vec![],
             has_popup: true,
@@ -189,6 +238,7 @@ mod tests {
             version: Some("1.0.0".to_string()),
             description: None,
             permissions: vec![],
+            extra_manifest: None,
             background_functions: vec![],
             event_handlers: vec![],
             has_popup: false,
@@ -222,6 +272,7 @@ mod tests {
             version: Some("1.0.0".to_string()),
             description: None,
             permissions: vec![],
+            extra_manifest: None,
             background_functions: vec![],
             event_handlers: vec![],
             has_popup: false,
@@ -262,5 +313,61 @@ mod tests {
             parsed["browser_specific_settings"]["gecko"]["id"],
             "test-extension@oxichrome.dev"
         );
+    }
+
+    #[test]
+    fn test_generate_manifest_with_extra_manifest() {
+        let metadata = ExtensionMetadata {
+            name: Some("Test".to_string()),
+            version: Some("1.0.0".to_string()),
+            description: None,
+            permissions: vec![],
+            extra_manifest: Some(r#"{
+                "action": {
+                    "default_icon": "icons/icon16.png"
+                },
+                "icons": {
+                    "16": "icons/icon16.png",
+                    "48": "icons/icon48.png"
+                }
+            }"#.to_string()),
+            background_functions: vec!["start".to_string()],
+            event_handlers: vec![],
+            has_popup: true,
+            has_options_page: false,
+            content_scripts: vec![],
+        };
+        let json = generate_manifest(&metadata, Browser::Chromium).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // Standard fields still present
+        assert_eq!(parsed["manifest_version"], 3);
+        assert_eq!(parsed["background"]["service_worker"], "background.js");
+        // Extra manifest fields merged
+        assert_eq!(parsed["action"]["default_popup"], "popup.html");
+        assert_eq!(parsed["action"]["default_icon"], "icons/icon16.png");
+        assert_eq!(parsed["icons"]["16"], "icons/icon16.png");
+        assert_eq!(parsed["icons"]["48"], "icons/icon48.png");
+    }
+
+    #[test]
+    fn test_generate_manifest_extra_manifest_overrides() {
+        let metadata = ExtensionMetadata {
+            name: Some("Test".to_string()),
+            version: Some("1.0.0".to_string()),
+            description: Some("original".to_string()),
+            permissions: vec![],
+            extra_manifest: Some(r#"{"description": "overridden"}"#.to_string()),
+            background_functions: vec!["start".to_string()],
+            event_handlers: vec![],
+            has_popup: false,
+            has_options_page: false,
+            content_scripts: vec![],
+        };
+        let json = generate_manifest(&metadata, Browser::Chromium).unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        // extra_manifest overrides standard fields
+        assert_eq!(parsed["description"], "overridden");
     }
 }

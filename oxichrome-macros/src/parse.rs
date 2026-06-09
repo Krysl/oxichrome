@@ -7,6 +7,7 @@ pub struct ExtensionArgs {
     pub version: LitStr,
     pub description: Option<LitStr>,
     pub permissions: Vec<LitStr>,
+    pub extra_manifest: Option<LitStr>,
 }
 
 impl Parse for ExtensionArgs {
@@ -15,6 +16,7 @@ impl Parse for ExtensionArgs {
         let mut version: Option<LitStr> = None;
         let mut description: Option<LitStr> = None;
         let mut permissions: Vec<LitStr> = Vec::new();
+        let mut extra_manifest: Option<LitStr> = None;
 
         while !input.is_empty() {
             let key: Ident = input.parse()?;
@@ -39,6 +41,9 @@ impl Parse for ExtensionArgs {
                             content.parse::<Token![,]>()?;
                         }
                     }
+                }
+                "extra_manifest" => {
+                    extra_manifest = Some(input.parse()?);
                 }
                 other => {
                     return Err(syn::Error::new(
@@ -71,6 +76,7 @@ impl Parse for ExtensionArgs {
             version,
             description,
             permissions,
+            extra_manifest,
         })
     }
 }

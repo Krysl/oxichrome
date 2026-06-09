@@ -16,6 +16,11 @@ enum CargoSubcommand {
 }
 
 #[derive(Parser)]
+#[command(
+    name = "oxichrome",
+    version = env!("CARGO_PKG_VERSION"),
+    display_name = "cargo-oxichrome"
+)]
 struct OxichromeArgs {
     #[command(subcommand)]
     command: OxichromeCommand,

@@ -146,6 +146,7 @@ mod tests {
             version: Some("1.0.0".to_string()),
             description: None,
             permissions: vec![],
+            extra_manifest: None,
             background_functions: vec!["start".to_string()],
             event_handlers: vec![EventHandler {
                 fn_name: "handle_install".to_string(),

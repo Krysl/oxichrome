@@ -18,6 +18,11 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> Result<TokenStream, syn::
 
     let permissions: Vec<_> = args.permissions.iter().collect();
 
+    let extra_manifest = match &args.extra_manifest {
+        Some(em) => quote! { Some(#em) },
+        None => quote! { None::<&str> },
+    };
+
     let struct_name = &item_struct.ident;
 
     Ok(quote! {
@@ -30,6 +35,7 @@ pub fn expand(attr: TokenStream, item: TokenStream) -> Result<TokenStream, syn::
             pub const VERSION: &str = #version;
             pub const DESCRIPTION: Option<&str> = #description;
             pub const PERMISSIONS: &[&str] = &[#(#permissions),*];
+            pub const EXTRA_MANIFEST: Option<&str> = #extra_manifest;
         }
 
         #[doc(hidden)]
