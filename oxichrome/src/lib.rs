@@ -11,6 +11,12 @@ pub use oxichrome_core::tabs;
 pub use oxichrome_core::log;
 pub use oxichrome_core::__log_impl;
 
+#[cfg(feature = "ui-leptos")]
+pub use leptos;
+
+#[cfg(feature = "ui-dioxus")]
+pub use dioxus;
+
 #[doc(hidden)]
 pub mod __private {
     pub use wasm_bindgen;
@@ -19,7 +25,12 @@ pub mod __private {
     pub use serde;
     pub use serde_json;
     pub use serde_wasm_bindgen;
+
+    #[cfg(feature = "ui-leptos")]
     pub use leptos;
+
+    #[cfg(feature = "ui-dioxus")]
+    pub use dioxus;
 }
 
 pub mod prelude {

@@ -12,6 +12,11 @@ authors.workspace = true
 [lib]
 proc-macro = true
 
+[features]
+default = ["ui-leptos"]
+ui-leptos = []
+ui-dioxus = []
+
 [dependencies]
 proc-macro2 = "1.0.106"
 quote = "1.0.44"

@@ -54,6 +54,7 @@ pub fn generate_popup_html() -> String {
 <style>html, body { margin: 0; padding: 0; min-width: 240px; min-height: 120px; }</style>
 </head>
 <body>
+<div id="main"></div>
 <script type="module" src="popup.js"></script>
 </body>
 </html>
@@ -87,6 +88,7 @@ pub fn generate_options_html() -> String {
 <style>html, body { margin: 0; padding: 0; }</style>
 </head>
 <body>
+<div id="main"></div>
 <script type="module" src="options.js"></script>
 </body>
 </html>
