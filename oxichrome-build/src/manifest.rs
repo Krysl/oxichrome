@@ -18,6 +18,8 @@ struct Manifest {
     content_security_policy: ContentSecurityPolicy,
     #[serde(skip_serializing_if = "Option::is_none")]
     options_ui: Option<OptionsUi>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    side_panel: Option<SidePanel>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     content_scripts: Vec<ContentScriptEntry>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -45,6 +47,11 @@ struct ContentSecurityPolicy {
 struct OptionsUi {
     page: String,
     open_in_tab: bool,
+}
+
+#[derive(Serialize)]
+struct SidePanel {
+    default_path: String,
 }
 
 #[derive(Serialize)]
@@ -99,6 +106,13 @@ pub fn generate_manifest(metadata: &ExtensionMetadata, browser: Browser) -> anyh
             Some(OptionsUi {
                 page: "options.html".to_string(),
                 open_in_tab: true,
+            })
+        } else {
+            None
+        },
+        side_panel: if metadata.has_side_panel {
+            Some(SidePanel {
+                default_path: "sidepanel.html".to_string(),
             })
         } else {
             None
@@ -209,6 +223,7 @@ mod tests {
             event_handlers: vec![],
             has_popup: true,
             has_options_page: true,
+            has_side_panel: false,
             content_scripts: vec![],
         }
     }
@@ -243,6 +258,7 @@ mod tests {
             event_handlers: vec![],
             has_popup: false,
             has_options_page: false,
+            has_side_panel: false,
             content_scripts: vec![
                 ContentScript {
                     fn_name: "inject".to_string(),
@@ -277,6 +293,7 @@ mod tests {
             event_handlers: vec![],
             has_popup: false,
             has_options_page: false,
+            has_side_panel: false,
             content_scripts: vec![
                 ContentScript {
                     fn_name: "inject".to_string(),
@@ -335,6 +352,7 @@ mod tests {
             event_handlers: vec![],
             has_popup: true,
             has_options_page: false,
+            has_side_panel: false,
             content_scripts: vec![],
         };
         let json = generate_manifest(&metadata, Browser::Chromium).unwrap();
@@ -362,6 +380,7 @@ mod tests {
             event_handlers: vec![],
             has_popup: false,
             has_options_page: false,
+            has_side_panel: false,
             content_scripts: vec![],
         };
         let json = generate_manifest(&metadata, Browser::Chromium).unwrap();

@@ -15,6 +15,7 @@ pub struct ExtensionMetadata {
     pub event_handlers: Vec<EventHandler>,
     pub has_popup: bool,
     pub has_options_page: bool,
+    pub has_side_panel: bool,
     pub content_scripts: Vec<ContentScript>,
 }
 
@@ -216,6 +217,9 @@ impl<'ast> Visit<'ast> for MetadataVisitor {
             }
             if Self::is_oxichrome_attr(attr, "options_page") {
                 self.metadata.has_options_page = true;
+            }
+            if Self::is_oxichrome_attr(attr, "side_panel") {
+                self.metadata.has_side_panel = true;
             }
             if Self::is_oxichrome_attr(attr, "content_script") {
                 if let Some(mut cs) = self.parse_content_script_args(attr) {

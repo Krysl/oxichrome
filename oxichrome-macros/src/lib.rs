@@ -64,6 +64,19 @@ pub fn options_page(_attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 /// ```ignore
+/// #[oxichrome::side_panel]
+/// fn SidePanel() -> impl IntoView {
+///     view! { <p>"Hello from side panel!"</p> }
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn side_panel(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    codegen::side_panel::expand(item.into())
+        .unwrap_or_else(|e| e.into_compile_error())
+        .into()
+}
+
+/// ```ignore
 /// #[oxichrome::content_script(matches = ["<all_urls>"])]
 /// async fn inject() {
 ///     // runs in web page context

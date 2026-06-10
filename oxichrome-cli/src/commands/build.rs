@@ -115,6 +115,16 @@ pub fn run(release: bool, browser: Browser) -> Result<()> {
         println!("[oxichrome] Generated options.html + options.js");
     }
 
+    if metadata.has_side_panel {
+        let side_panel_html = shims::generate_side_panel_html();
+        fs::write(dist_dir.join("sidepanel.html"), &side_panel_html)
+            .context("failed to write sidepanel.html")?;
+        let side_panel_js = shims::generate_side_panel_js(&crate_name);
+        fs::write(dist_dir.join("sidepanel.js"), &side_panel_js)
+            .context("failed to write sidepanel.js")?;
+        println!("[oxichrome] Generated sidepanel.html + sidepanel.js");
+    }
+
     for cs in &metadata.content_scripts {
         let cs_js = shims::generate_content_script_js(&cs.fn_name, &crate_name);
         let cs_filename = format!("content_script_{}.js", cs.fn_name);
