@@ -5,7 +5,7 @@
 [![Manifest V3](https://img.shields.io/badge/chrome-Manifest%20V3-4285F4.svg)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
 [![Website](https://img.shields.io/badge/website-oxichrome.dev-ff6600.svg)](https://oxichrome.dev)
 
-![oxichrome](assets/og.png)
+![oxichrome](https://raw.githubusercontent.com/0xsouravm/oxichrome/main/assets/og.png)
 
 Write browser extensions entirely in Rust, compiled to WebAssembly. Chrome and Firefox.
 
